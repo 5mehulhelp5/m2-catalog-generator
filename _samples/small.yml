@@ -60,3 +60,5 @@ entities:
       - 'product:generate_images'
       - 'product:generate_url_keys'
       - 'product:generate_urls'
+      - 'command:indexer:reindex'
+      - 'command:cache:flush'
