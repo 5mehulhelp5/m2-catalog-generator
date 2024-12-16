@@ -57,7 +57,7 @@ Example:
 * Attribute Handling: Populates and combines configurable attributes efficiently.
 * Attribute Handling: Populates and combines configurable attributes efficiently.
 * Creating randomized product images
-* Prodiuct
+* Product
 
 ## Module Structure
 
@@ -69,7 +69,7 @@ Below is an overview of the module’s directory structure:
 * Config: Handles configuration parsing and validation.
 * Console: Contains `CLI` commands to trigger catalog generation.
 * Data: Implements data generation and population logic.
-* Generators: Logic for creating entities (e.g., products, categories).
+* Generators: Logic for creating entities (e.g. products, categories).
 * Populators: Populates entity attributes.
 * Reader: Reads `YAML` configuration files.
 * Resolver: Resolves entity names and dependencies.
@@ -88,7 +88,7 @@ Example YAML files are available in the _samples directory:
 
 * `Dependency Injection`: The module follows Magento’s DI pattern for better flexibility
 * `Testing`: Unit tests are available under `Test/Unit`.
-* Code ia passing `phpstan-8` and `phpcs magento-coding-standsrds`
+* Code is passing `phpstan-8` and `phpcs magento-coding-standards`
 
 
   ![img.png](img.png)
