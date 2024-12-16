@@ -41,7 +41,7 @@ Sample configurations can be found in the `_samples` directory (`small.yml`, `me
 Example:
 
    ```bash
-   php bin/magento qoliber:catalog:generate app/code/Qoliber/CatalogGenerator/_samples/small.yml
+   php bin/magento qoliber:catalog:generate vendor/qoliber/m2-catalog-generator/_samples/small.yml
    ```
 
 ## Module Features
