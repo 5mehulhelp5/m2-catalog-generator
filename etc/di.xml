@@ -55,6 +55,10 @@
                       xsi:type="object">Qoliber\CatalogGenerator\Task\Category\UrlAttributeGeneratorTask\Proxy</item>
                 <item name="category:generate_urls"
                       xsi:type="object">Qoliber\CatalogGenerator\Task\Category\UrlGeneratorTask\Proxy</item>
+                <item name="command:cache:flush"
+                      xsi:type="object">Qoliber\CatalogGenerator\Task\Command\CacheFlush\Proxy</item>
+                <item name="command:indexer:reindex"
+                      xsi:type="object">Qoliber\CatalogGenerator\Task\Command\Reindex\Proxy</item>
                 <item name="product:assign_to_categories"
                       xsi:type="object">Qoliber\CatalogGenerator\Task\Product\AssignToCategories\Proxy</item>
                 <item name="product:generate_url_keys"
