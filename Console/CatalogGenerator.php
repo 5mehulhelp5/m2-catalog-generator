@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace Qoliber\CatalogGenerator\Console;
 
+use Magento\Framework\App\State as AppState;
+use Magento\Framework\Exception\StateException;
 use Qoliber\CatalogGenerator\Api\Service\CatalogGenerationServiceInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -30,6 +32,7 @@ class CatalogGenerator extends Command
      */
     public function __construct(
         protected CatalogGenerationServiceInterface $catalogGenerationService,
+        private readonly AppState $appState,
     ) {
         parent::__construct(self::NAME);
     }
@@ -62,6 +65,12 @@ class CatalogGenerator extends Command
     {
         if (!$configFile = $input->getArgument('config')) {
             throw new \InvalidArgumentException('Config file name must be specified');
+        }
+
+        if ($this->appState->getMode() !== AppState::MODE_DEVELOPER) {
+            throw new StateException(__(
+                'This command is destructive. Ensure Magento is running in "developer" mode and try again.'
+            ));
         }
 
         $this->catalogGenerationService
