@@ -6,7 +6,7 @@
     "source": {
         "type": "git",
         "url": "git@github.com:qoliber/m2-catalog-generator.git",
-        "reference": "master"
+        "reference": "main"
     },
     "authors": [
         {
