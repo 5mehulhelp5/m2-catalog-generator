@@ -2,7 +2,7 @@ clean_before_run: true
 prefix: 'qoliber'
 entities:
   category:
-    count: "1/2/5/10"
+    count: "1/3/5/10" # ~800 categories
     attributes:
       name: "resolver:category_name"
       include_in_menu: 1
@@ -14,52 +14,59 @@ entities:
       - 'category:generate_url_attributes'
 
   website:
-    count: 1
-    stores_per_website: 2
+    count: 3
+    stores_per_website: 3
     tasks:
       - 'category:generate_urls'
       - 'website:assign_sales_channel'
 
   customer_group:
-    count: 4
+    count: 10
 
   stock:
-    msi_sources_count: 2
-    msi_stock_count: 2
+    msi_sources_count: 5
+    msi_stock_count: 3
     tasks:
       - 'stock:link_sources'
 
   custom_attributes:
     dropdown:
-      count: 3
-      options_per_attribute: 5
-      product_assignment_percent: 60
+      count: 12
+      options_per_attribute: 8
+      product_assignment_percent: 70
       searchable: true
       filterable: true
     multiselect:
-      count: 2
-      options_per_attribute: 4
-      product_assignment_percent: 40
+      count: 8
+      options_per_attribute: 6
+      product_assignment_percent: 50
       searchable: true
       filterable: true
 
   product:
     types:
       simple:
-        count: 500
+        count: 100000
       configurable:
-        count: 50
+        count: 10000
         options: [2, 2]
+        # 2 attributes × 4 options = 16 child simple products per configurable
+        # total configurable children: 25,000 × 16 = 400,000
       bundle:
-        count: 50
+        count: 5000
         options:
-          checkbox: 2
-          select: 2
-          multi: 2
-          radio: 2
+          checkbox: 3
+          select: 3
+          multi: 3
+          radio: 3
+        # 4 types × 4 children = 16 child products per bundle
+        # total bundle children: 25,000 × 16 = 400,000
       grouped:
-        count: 50
+        count: 5000
         options: [4]
+        # 8 child products per grouped
+        # total grouped children: 5,000 × 8 = 40,000
+    # total products: ~1,120,000
     attributes:
       name: "resolver:name"
       price: 499
@@ -68,11 +75,11 @@ entities:
       visibility: 4
       weight: 1.00
     custom_options:
-      count: 50
-      options_per_product: 3
-      values_per_option: 4
+      count: 1000
+      options_per_product: 5
+      values_per_option: 3
     tier_prices:
-      levels: 5
+      levels: 4
     tasks:
       - 'product:assign_to_categories'
       - 'product:assign_to_type_categories'
@@ -81,14 +88,14 @@ entities:
       - 'product:assign_tier_prices'
       - 'product:assign_stock'
       - 'product:assign_to_websites'
-      - 'product:generate_images'
+      #- 'product:generate_images' # disabled for performance
       - 'product:generate_url_keys'
       - 'product:generate_urls'
 
   catalog_rules:
-    count: 3
+    count: 4
     discount_type: by_percent
-    discount_range: [5, 25]
+    discount_range: [5, 30]
 
   commands:
     tasks:

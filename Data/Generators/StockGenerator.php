@@ -13,7 +13,7 @@ namespace Qoliber\CatalogGenerator\Data\Generators;
 
 use Qoliber\CatalogGenerator\Api\EntityGeneratorInterface;
 
-class CustomerGroupGenerator extends AbstractGenerator implements EntityGeneratorInterface
+class StockGenerator extends AbstractGenerator implements EntityGeneratorInterface
 {
     /**
      * Get Entity Table
@@ -22,7 +22,7 @@ class CustomerGroupGenerator extends AbstractGenerator implements EntityGenerato
      */
     public function getEntityTable(): string
     {
-        return 'customer_group';
+        return 'inventory_source';
     }
 
     /**
@@ -35,21 +35,33 @@ class CustomerGroupGenerator extends AbstractGenerator implements EntityGenerato
      */
     public function generateEntities(int|string $count, string $entityType, array $entityConfig = []): array
     {
-        if ((int) $count <= 0) {
+        $prefix = strtolower((string) $this->configReader->getConfig('prefix'));
+        $sourcesCount = (int) ($entityConfig['msi_sources_count'] ?? 0);
+        $stockCount = (int) ($entityConfig['msi_stock_count'] ?? 0);
+
+        if ($sourcesCount <= 0 && $stockCount <= 0) {
             return [];
         }
 
-        $prefix = strtolower((string) $this->configReader->getConfig('prefix'));
         $data = [];
 
-        for ($i = 1; $i <= (int) $count; $i++) {
-            $data[] = [
-                'customer_group_code' => sprintf('%s_group_%d', $prefix, $i),
-                'tax_class_id' => 3,
+        for ($i = 1; $i <= $sourcesCount; $i++) {
+            $sourceCode = sprintf('%s_source_%d', $prefix, $i);
+            $data['inventory_source'][] = [
+                'source_code' => $sourceCode,
+                'name' => sprintf('%s Source %d', ucfirst($prefix), $i),
+                'enabled' => 1,
+                'country_id' => 'US',
             ];
         }
 
-        return ['customer_group' => $data];
+        for ($i = 1; $i <= $stockCount; $i++) {
+            $data['inventory_stock'][] = [
+                'name' => sprintf('%s Stock %d', ucfirst($prefix), $i),
+            ];
+        }
+
+        return $data;
     }
 
     /**
@@ -57,7 +69,7 @@ class CustomerGroupGenerator extends AbstractGenerator implements EntityGenerato
      *
      * @param mixed[] $entityConfig
      * @param int $entityId
-     * @return array|mixed[]
+     * @return mixed[]
      */
     public function populateAttributes(array $entityConfig, int $entityId): array
     {

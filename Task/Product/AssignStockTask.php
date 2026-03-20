@@ -13,7 +13,6 @@ namespace Qoliber\CatalogGenerator\Task\Product;
 
 use Qoliber\CatalogGenerator\Api\Task\TaskInterface;
 use Qoliber\CatalogGenerator\Sql\InsertMultipleOnDuplicate;
-use Qoliber\CatalogGenerator\Task\AbstractTask;
 
 class AssignStockTask extends AbstractProductTask implements TaskInterface
 {
@@ -26,10 +25,13 @@ class AssignStockTask extends AbstractProductTask implements TaskInterface
     public function runTask(): TaskInterface
     {
         $insert = new InsertMultipleOnDuplicate();
+        $sourceCodes = $this->getSourceCodes();
         $productBatches = $this->connection->getEntityBatches(
             'entity_id',
             'catalog_product_entity'
         );
+
+        $progressBar = $this->createProgressBar(count($productBatches));
 
         foreach ($productBatches as $productBatch) {
             $stockData = [
@@ -88,12 +90,14 @@ class AssignStockTask extends AbstractProductTask implements TaskInterface
                 ];
 
                 if (!$isCompositeType) {
-                    $stockData['inventory_source_item'][] = [
-                        'source_code' => 'default',
-                        'sku' => $productEntity['sku'],
-                        'quantity' => 100,
-                        'status' => 1
-                    ];
+                    foreach ($sourceCodes as $sourceCode) {
+                        $stockData['inventory_source_item'][] = [
+                            'source_code' => $sourceCode,
+                            'sku' => $productEntity['sku'],
+                            'quantity' => 100,
+                            'status' => 1
+                        ];
+                    }
                 }
             }
 
@@ -108,8 +112,25 @@ class AssignStockTask extends AbstractProductTask implements TaskInterface
                     $this->connection->execute($prepareStatement, InsertMultipleOnDuplicate::flatten($dataBatch));
                 }
             }
+
+            $progressBar?->advance();
         }
 
+        $this->finishProgressBar($progressBar);
+
         return $this;
+    }
+
+    /**
+     * Get all source codes from inventory_source
+     *
+     * @return string[]
+     */
+    private function getSourceCodes(): array
+    {
+        $query = $this->connection->getConnection()->select()
+            ->from($this->connection->getTableName('inventory_source'), ['source_code']);
+
+        return $this->connection->getConnection()->fetchCol($query);
     }
 }

@@ -70,33 +70,43 @@ class CatalogGenerationService implements CatalogGenerationServiceInterface
 
         $this->connection->getConnection()->query('SET FOREIGN_KEY_CHECKS = 0');
 
-        foreach ($config['entities'] as $entity => $entityConfig) {
-            $entityGenerator = $this->entityGenerators[$entity] ?? null;
+        try {
+            foreach ($config['entities'] as $entity => $entityConfig) {
+                $entityGenerator = $this->entityGenerators[$entity] ?? null;
 
-            if ($entityGenerator) {
-                $this->output?->writeln(sprintf('<info> --> Generating <fg=yellow>%s</> data</info>', $entity));
-                $data = $entityGenerator->generateEntities($entityConfig['count'] ?? 0, '', $entityConfig);
-                $this->output?->writeln(sprintf('<info>   ↳ Processing <fg=white>%s</> data</info>', $entity));
+                if ($entityGenerator) {
+                    if (method_exists($entityGenerator, 'setOutput') && $this->output) {
+                        $entityGenerator->setOutput($this->output);
+                    }
 
-                foreach ($data as $tableName => $tableData) {
-                    $query = new InsertMultipleOnDuplicate();
-                    $statement = $query->buildInsertQuery(
-                        $this->connection->getTableName($tableName),
-                        array_keys($tableData[0]),
-                        count($tableData)
-                    );
+                    $this->output?->writeln(sprintf('<info> --> Generating <fg=yellow>%s</> data</info>', $entity));
+                    $data = $entityGenerator->generateEntities($entityConfig['count'] ?? 0, '', $entityConfig);
 
-                    $this->connection->execute($statement, InsertMultipleOnDuplicate::flatten($tableData));
-                }
+                    if (!empty($data)) {
+                        $this->output?->writeln(sprintf(
+                            '<info>   ↳ Inserting <fg=white>%s</> data</info>',
+                            $entity
+                        ));
+                        $this->insertData($data);
+                    }
 
-                $this->output?->writeln('<info>   ↳ Running tasks:</info>');
-                foreach ($entityConfig['tasks'] ?? [] as $taskName) {
-                    if ($task = $entityGenerator->getTask($taskName)) {
-                        $this->output?->writeln(sprintf('<info>     ↳ Running <fg=cyan>%s</> task</info>', $taskName));
-                        $task->runTask();
+                    $this->output?->writeln('<info>   ↳ Running tasks:</info>');
+                    foreach ($entityConfig['tasks'] ?? [] as $taskName) {
+                        if ($task = $entityGenerator->getTask($taskName)) {
+                            if (method_exists($task, 'setOutput') && $this->output) {
+                                $task->setOutput($this->output);
+                            }
+                            $this->output?->writeln(sprintf(
+                                '<info>     ↳ Running <fg=cyan>%s</> task</info>',
+                                $taskName
+                            ));
+                            $task->runTask();
+                        }
                     }
                 }
             }
+        } finally {
+            $this->connection->getConnection()->query('SET FOREIGN_KEY_CHECKS = 1');
         }
 
         $this->output?->writeln('');
@@ -114,5 +124,30 @@ class CatalogGenerationService implements CatalogGenerationServiceInterface
     public function getEntityGenerator(string $type): ?EntityGeneratorInterface
     {
         return $this->entityGenerators[$type] ?? null;
+    }
+
+    /**
+     * Insert data into database in chunks
+     *
+     * @param mixed[][] $data
+     * @return void
+     */
+    private function insertData(array $data): void
+    {
+        foreach ($data as $tableName => $tableData) {
+            foreach (array_chunk($tableData, 5000) as $chunk) {
+                $query = new InsertMultipleOnDuplicate();
+                $statement = $query->buildInsertQuery(
+                    $this->connection->getTableName($tableName),
+                    array_keys($chunk[0]),
+                    count($chunk)
+                );
+
+                $this->connection->execute(
+                    $statement,
+                    InsertMultipleOnDuplicate::flatten($chunk)
+                );
+            }
+        }
     }
 }

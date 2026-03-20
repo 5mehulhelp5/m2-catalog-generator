@@ -78,7 +78,15 @@ class CategoryGenerator extends AbstractGenerator implements EntityGeneratorInte
         $categoryAttributeData = [];
 
         foreach ($entityConfig['attributes'] as $attributeCode => $attributeValue) {
-            $attributeData = $dataPopulator->getAttributeData('3', $attributeCode);
+            $attributeData = $dataPopulator->getAttributeData(
+                (string) $this->getEntityTypeId('catalog_category'),
+                $attributeCode
+            );
+
+            if (empty($attributeData)) {
+                continue;
+            }
+
             $categoryAttributeTable = $this->resourceConnection->getConnection()->getTableName(
                 sprintf('%s_%s', $this->getEntityTable(), $attributeData['backend_type'])
             );
@@ -134,7 +142,7 @@ class CategoryGenerator extends AbstractGenerator implements EntityGeneratorInte
 
             $data[] = [
                 'entity_id' => $categoryID,
-                'attribute_set_id' => 3,
+                'attribute_set_id' => $this->getDefaultAttributeSetId('catalog_category'),
                 'parent_id' => $parentID,
                 'path' => $newPath,
                 'position' => $position,

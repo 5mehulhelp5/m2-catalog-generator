@@ -13,7 +13,7 @@ namespace Qoliber\CatalogGenerator\Data\Generators;
 
 use Qoliber\CatalogGenerator\Api\EntityGeneratorInterface;
 
-class CustomerGroupGenerator extends AbstractGenerator implements EntityGeneratorInterface
+class CommandGenerator extends AbstractGenerator implements EntityGeneratorInterface
 {
     /**
      * Get Entity Table
@@ -22,7 +22,7 @@ class CustomerGroupGenerator extends AbstractGenerator implements EntityGenerato
      */
     public function getEntityTable(): string
     {
-        return 'customer_group';
+        return '';
     }
 
     /**
@@ -35,21 +35,7 @@ class CustomerGroupGenerator extends AbstractGenerator implements EntityGenerato
      */
     public function generateEntities(int|string $count, string $entityType, array $entityConfig = []): array
     {
-        if ((int) $count <= 0) {
-            return [];
-        }
-
-        $prefix = strtolower((string) $this->configReader->getConfig('prefix'));
-        $data = [];
-
-        for ($i = 1; $i <= (int) $count; $i++) {
-            $data[] = [
-                'customer_group_code' => sprintf('%s_group_%d', $prefix, $i),
-                'tax_class_id' => 3,
-            ];
-        }
-
-        return ['customer_group' => $data];
+        return [];
     }
 
     /**
@@ -57,7 +43,7 @@ class CustomerGroupGenerator extends AbstractGenerator implements EntityGenerato
      *
      * @param mixed[] $entityConfig
      * @param int $entityId
-     * @return array|mixed[]
+     * @return mixed[]
      */
     public function populateAttributes(array $entityConfig, int $entityId): array
     {

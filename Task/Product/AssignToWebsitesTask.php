@@ -27,37 +27,37 @@ class AssignToWebsitesTask extends AbstractTask implements TaskInterface
     {
         $productBatches = $this->connection->getEntityBatches('entity_id', 'catalog_product_entity');
         $websiteIds = $this->getWebsiteIds();
-        $productWebsiteRelation = [];
+        $insert = new InsertMultipleOnDuplicate();
+        $progressBar = $this->createProgressBar(count($productBatches));
 
         foreach ($productBatches as $productBatch) {
+            $productWebsiteRelation = [];
             $entityIdFrom = $productBatch['id_from'];
             $entityIdTo = $productBatch['id_to'];
-            $productIds = range($entityIdFrom, $entityIdTo);
 
-            // phpcs:disable
-            foreach ($productIds as $productId) {
-                $productWebsiteRelation = array_merge(
-                    $productWebsiteRelation,
-                    array_map(fn($websiteId) => [
+            for ($productId = $entityIdFrom; $productId <= $entityIdTo; $productId++) {
+                foreach ($websiteIds as $websiteId) {
+                    $productWebsiteRelation[] = [
                         'product_id' => $productId,
                         'website_id' => $websiteId
-                    ], $websiteIds)
-                );
+                    ];
+                }
             }
-            // phpcs:enable
+
+            foreach (array_chunk($productWebsiteRelation, 2500) as $dataBatch) {
+                $prepareStatement = $insert->buildInsertQuery(
+                    'catalog_product_website',
+                    array_keys($dataBatch[0]),
+                    count($dataBatch)
+                );
+
+                $this->connection->execute($prepareStatement, InsertMultipleOnDuplicate::flatten($dataBatch));
+            }
+
+            $progressBar?->advance();
         }
 
-        $insert = new InsertMultipleOnDuplicate();
-
-        foreach (array_chunk($productWebsiteRelation, 2500) as $dataBatch) {
-            $prepareStatement = $insert->buildInsertQuery(
-                'catalog_product_website',
-                array_keys($dataBatch[0]),
-                count($dataBatch)
-            );
-
-            $this->connection->execute($prepareStatement, InsertMultipleOnDuplicate::flatten($dataBatch));
-        }
+        $this->finishProgressBar($progressBar);
 
         return $this;
     }

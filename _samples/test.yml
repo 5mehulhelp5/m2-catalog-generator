@@ -2,7 +2,7 @@ clean_before_run: true
 prefix: 'qoliber'
 entities:
   category:
-    count: "1/2/5/10"
+    count: "1/2/3"
     attributes:
       name: "resolver:category_name"
       include_in_menu: 1
@@ -21,7 +21,7 @@ entities:
       - 'website:assign_sales_channel'
 
   customer_group:
-    count: 4
+    count: 2
 
   stock:
     msi_sources_count: 2
@@ -31,14 +31,14 @@ entities:
 
   custom_attributes:
     dropdown:
-      count: 3
-      options_per_attribute: 5
+      count: 2
+      options_per_attribute: 3
       product_assignment_percent: 60
       searchable: true
       filterable: true
     multiselect:
-      count: 2
-      options_per_attribute: 4
+      count: 1
+      options_per_attribute: 3
       product_assignment_percent: 40
       searchable: true
       filterable: true
@@ -46,20 +46,18 @@ entities:
   product:
     types:
       simple:
-        count: 500
+        count: 20
       configurable:
-        count: 50
+        count: 3
         options: [2, 2]
       bundle:
-        count: 50
+        count: 3
         options:
           checkbox: 2
           select: 2
-          multi: 2
-          radio: 2
       grouped:
-        count: 50
-        options: [4]
+        count: 3
+        options: [3]
     attributes:
       name: "resolver:name"
       price: 499
@@ -68,11 +66,11 @@ entities:
       visibility: 4
       weight: 1.00
     custom_options:
-      count: 50
-      options_per_product: 3
-      values_per_option: 4
+      count: 5
+      options_per_product: 2
+      values_per_option: 3
     tier_prices:
-      levels: 5
+      levels: 3
     tasks:
       - 'product:assign_to_categories'
       - 'product:assign_to_type_categories'
@@ -81,14 +79,13 @@ entities:
       - 'product:assign_tier_prices'
       - 'product:assign_stock'
       - 'product:assign_to_websites'
-      - 'product:generate_images'
       - 'product:generate_url_keys'
       - 'product:generate_urls'
 
   catalog_rules:
-    count: 3
+    count: 2
     discount_type: by_percent
-    discount_range: [5, 25]
+    discount_range: [5, 20]
 
   commands:
     tasks:

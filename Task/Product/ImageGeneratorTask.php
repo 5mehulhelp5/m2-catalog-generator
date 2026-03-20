@@ -26,11 +26,11 @@ class ImageGeneratorTask extends AbstractTask implements TaskInterface
      */
     public function runTask(): TaskInterface
     {
-        $imageAttributeId = $this->getAttributeId(4, 'image');
-        $smallImageAttributeId = $this->getAttributeId(4, 'small_image');
-        $thumbnailImageAttributeId = $this->getAttributeId(4, 'thumbnail');
-        $swatchImageId = $this->getAttributeId(4, 'swatch_image');
-        $mediaGalleryAttributeId = $this->getAttributeId(4, 'media_gallery');
+        $imageAttributeId = $this->getAttributeId($this->getEntityTypeId('catalog_product'), 'image');
+        $smallImageAttributeId = $this->getAttributeId($this->getEntityTypeId('catalog_product'), 'small_image');
+        $thumbnailImageAttributeId = $this->getAttributeId($this->getEntityTypeId('catalog_product'), 'thumbnail');
+        $swatchImageId = $this->getAttributeId($this->getEntityTypeId('catalog_product'), 'swatch_image');
+        $mediaGalleryAttributeId = $this->getAttributeId($this->getEntityTypeId('catalog_product'), 'media_gallery');
         $fastQuery = new InsertMultipleOnDuplicate();
         $productEntityBatches = $this->connection->getEntityBatches('entity_id', 'catalog_product_entity');
 

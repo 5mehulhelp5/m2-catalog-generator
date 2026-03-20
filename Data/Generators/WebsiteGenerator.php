@@ -144,11 +144,13 @@ class WebsiteGenerator extends AbstractGenerator implements EntityGeneratorInter
     {
         return [
             'store_id' => $storeId,
-            'code' => sprintf(
-                '%s_storeview_%d',
-                strtolower($this->configReader->getConfig('prefix')),
-                $storeId
-            ),
+            'code' => $storeId === 1
+                ? 'default'
+                : sprintf(
+                    '%s_storeview_%d',
+                    strtolower($this->configReader->getConfig('prefix')),
+                    $storeId
+                ),
             'website_id' => $i,
             'group_id' => $i,
             'name' => sprintf(
