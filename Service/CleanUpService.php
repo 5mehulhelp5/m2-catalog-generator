@@ -42,6 +42,8 @@ class CleanUpService implements CleanUpServiceInterface
         foreach (CleanUp::WILDCARD_SUFFIXES as $tableSuffix) {
             $this->getWildCardTablesAndTruncate($tableSuffix);
         }
+
+        $this->dropCustomStockViews();
     }
 
     /**
@@ -64,6 +66,30 @@ class CleanUpService implements CleanUpServiceInterface
     }
 
     /**
+     * Drop custom MSI stock views (inventory_stock_N where N > 1)
+     *
+     * @return void
+     */
+    private function dropCustomStockViews(): void
+    {
+        $views = $this->connection->getConnection()->fetchCol(
+            "SHOW FULL TABLES WHERE Table_type = 'VIEW' AND Tables_in_" .
+            $this->connection->getConnection()->fetchOne('SELECT DATABASE()') .
+            " LIKE 'inventory_stock_%'"
+        );
+
+        foreach ($views as $view) {
+            if ($view !== 'inventory_stock_1') {
+                try {
+                    $this->connection->executeQuery(sprintf('DROP VIEW IF EXISTS `%s`', $view));
+                } catch (\Exception $e) {
+                    // Skip if view doesn't exist
+                }
+            }
+        }
+    }
+
+    /**
      * Get ALl Tables based on wildcard characters, to cleanup
      *
      * @param string $pattern
@@ -75,7 +101,11 @@ class CleanUpService implements CleanUpServiceInterface
         $result = $this->connection->getConnection()->fetchCol($query);
 
         foreach ($result as $tableName) {
-            $this->connection->executeQuery(sprintf('TRUNCATE TABLE `%s`', $tableName));
+            try {
+                $this->connection->executeQuery(sprintf('TRUNCATE TABLE `%s`', $tableName));
+            } catch (\Exception $e) {
+                // Skip views and missing tables
+            }
         }
     }
 }

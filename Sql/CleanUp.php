@@ -79,11 +79,14 @@ class CleanUp
         'TRUNCATE TABLE `cataloginventory_stock_item`',
         'TRUNCATE TABLE `cataloginventory_stock_status`',
         'TRUNCATE TABLE `inventory_low_stock_notification_configuration`',
-        // 'TRUNCATE TABLE `inventory_source_stock_link`', // TODO - implement multiple warehouses for MSI testing
-        // 'TRUNCATE TABLE `inventory_stock`', // TODO - implement multiple warehouses for MSI testing
+        'TRUNCATE TABLE `inventory_source_stock_link`',
+        "INSERT INTO `inventory_source_stock_link` (`stock_id`, `source_code`, `priority`) VALUES (1, 'default', 1)",
         'TRUNCATE TABLE `inventory_stock_sales_channel`',
         'TRUNCATE TABLE `product_alert_stock`',
         'TRUNCATE TABLE `inventory_source_item`',
+        'DELETE FROM `inventory_stock` WHERE `stock_id` != 1',
+        'ALTER TABLE `inventory_stock` AUTO_INCREMENT = 2',
+        'DELETE FROM `inventory_source` WHERE `source_code` != \'default\'',
 
         // bundle product cleanup
         'TRUNCATE TABLE `catalog_product_bundle_option`',
@@ -118,7 +121,10 @@ class CleanUp
 
         // DELETE CUSTOM ATTRIBUTES
         'DELETE FROM `eav_attribute` WHERE `attribute_code` LIKE "%configurable%"',
-        'DELETE FROM `eav_attribute` WHERE `attribute_code` LIKE "%dropdown%"',
+        'DELETE FROM `eav_attribute` WHERE `attribute_code` LIKE "%dropdown_attribute%"',
+        'DELETE FROM `eav_attribute` WHERE `attribute_code` REGEXP "^dropdown_[0-9]+$"',
+        'DELETE FROM `eav_attribute` WHERE `attribute_code` REGEXP "^multiselect_[0-9]+$"',
+        'DELETE FROM `customer_group` WHERE `customer_group_id` > 3',
 
         'SET FOREIGN_KEY_CHECKS = 1',
         'COMMIT',

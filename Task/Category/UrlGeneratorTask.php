@@ -75,7 +75,7 @@ class UrlGeneratorTask extends AbstractUrlGenerator implements TaskInterface
             )
             ->where('entity_id = ?', $categoryId)
             ->where('store_id in (?)', [0, $storeId])
-            ->where('attribute_id = ?', $this->getUrlKeyAttributeId(3))
+            ->where('attribute_id = ?', $this->getUrlKeyAttributeId($this->getEntityTypeId('catalog_category')))
             ->order('store_id desc');
 
         return $this->connection->getConnection()->fetchOne($query);

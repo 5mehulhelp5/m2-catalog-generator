@@ -14,17 +14,20 @@ namespace Qoliber\CatalogGenerator\Data\Generators\Product;
 use Magento\Framework\App\ResourceConnection;
 use Qoliber\CatalogGenerator\Api\DataGeneratorInterface;
 use Qoliber\CatalogGenerator\Service\ConfigurableAttributeCombinator;
+use Qoliber\CatalogGenerator\Sql\Connection;
 
 class ConfigurableProductDataGenerator implements DataGeneratorInterface
 {
     /**
      * @param \Magento\Framework\App\ResourceConnection $resourceConnection
      * @param \Qoliber\CatalogGenerator\Service\ConfigurableAttributeCombinator $combinator
+     * @param \Qoliber\CatalogGenerator\Sql\Connection $sqlConnection
      * @param mixed[] $generatedAttributes
      */
     public function __construct(
         private readonly ResourceConnection $resourceConnection,
         private readonly ConfigurableAttributeCombinator $combinator,
+        private readonly Connection $sqlConnection,
         private array $generatedAttributes = []
     ) {
     }
@@ -61,8 +64,10 @@ class ConfigurableProductDataGenerator implements DataGeneratorInterface
             for ($i = 1; $i <= $attributeCount; $i++) {
                 $attributeCode = sprintf('%s_%s_%d', $prefix, 'dropdown_attribute', $i);
 
+                $productEntityTypeId = $this->sqlConnection->getEntityTypeId('catalog_product');
+
                 $connection->insert($eavAttributeTable, [
-                    'entity_type_id' => 4,
+                    'entity_type_id' => $productEntityTypeId,
                     'attribute_code' =>$attributeCode,
                     'frontend_input' => 'select',
                     'backend_type' => 'int',
@@ -74,8 +79,9 @@ class ConfigurableProductDataGenerator implements DataGeneratorInterface
                 $attributeId = $connection->lastInsertId();
                 $attributeIds[] = $attributeId;
                 $defaultAttributeSetId = $connection->fetchOne(
-                    "SELECT attribute_set_id FROM $eavAttributeSetTable WHERE entity_type_id = 4
-                                     AND attribute_set_name = 'Default'"
+                    "SELECT attribute_set_id FROM $eavAttributeSetTable WHERE entity_type_id = :entityTypeId
+                                     AND attribute_set_name = 'Default'",
+                    ['entityTypeId' => $productEntityTypeId]
                 );
 
                 $defaultAttributeGroupId = $connection->fetchOne(
@@ -85,7 +91,7 @@ class ConfigurableProductDataGenerator implements DataGeneratorInterface
                 );
 
                 $connection->insert('eav_entity_attribute', [
-                    'entity_type_id' => 4,
+                    'entity_type_id' => $productEntityTypeId,
                     'attribute_set_id' => $defaultAttributeSetId,
                     'attribute_group_id' => $defaultAttributeGroupId,
                     'attribute_id' => $attributeId,

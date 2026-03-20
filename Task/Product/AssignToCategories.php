@@ -27,38 +27,43 @@ class AssignToCategories extends AbstractTask implements TaskInterface
     {
         $productBatches = $this->connection->getEntityBatches('entity_id', 'catalog_product_entity');
         $categoryIds = $this->fetchCategoryIds();
-        $productCategoryRelation = [];
+        $insert = new InsertMultipleOnDuplicate();
+        $progressBar = $this->createProgressBar(count($productBatches));
 
         foreach ($productBatches as $productBatch) {
+            $productCategoryRelation = [];
             $entityIdFrom = $productBatch['id_from'];
             $entityIdTo = $productBatch['id_to'];
 
             for ($i = $entityIdFrom; $i <= $entityIdTo; $i++) {
                 $position = 0;
-                $randomKeys = array_rand($categoryIds, rand(2, (int) (count($categoryIds) / 20))); // random categories
+                $maxCategories = max(2, (int) (count($categoryIds) / 20));
+                $randomKeys = array_rand($categoryIds, rand(1, min($maxCategories, count($categoryIds))));
+                $randomKeys = is_array($randomKeys) ? $randomKeys : [$randomKeys];
 
                 foreach ($randomKeys as $randomKey) {
-                    $categoryId = $categoryIds[$randomKey];
-
                     $productCategoryRelation[] = [
-                        'category_id' => $categoryId,
+                        'category_id' => $categoryIds[$randomKey],
                         'product_id' => $i,
                         'position' => $position++
                     ];
                 }
             }
+
+            foreach (array_chunk($productCategoryRelation, 2500) as $dataBatch) {
+                $prepareStatement = $insert->buildInsertQuery(
+                    'catalog_category_product',
+                    array_keys($dataBatch[0]),
+                    count($dataBatch)
+                );
+
+                $this->connection->execute($prepareStatement, InsertMultipleOnDuplicate::flatten($dataBatch));
+            }
+
+            $progressBar?->advance();
         }
 
-        $insert = new InsertMultipleOnDuplicate();
-        foreach (array_chunk($productCategoryRelation, 2500) as $dataBatch) {
-            $prepareStatement = $insert->buildInsertQuery(
-                'catalog_category_product',
-                array_keys($dataBatch[0]),
-                count($dataBatch)
-            );
-
-            $this->connection->execute($prepareStatement, InsertMultipleOnDuplicate::flatten($dataBatch));
-        }
+        $this->finishProgressBar($progressBar);
 
         return $this;
     }

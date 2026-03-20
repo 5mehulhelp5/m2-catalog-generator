@@ -47,7 +47,9 @@
 
             <argument name="dataResolvers" xsi:type="array">
                 <item name="name"
-                      xsi:type="object" >Qoliber\CatalogGenerator\Resolver\NameResolver\Proxy</item>
+                      xsi:type="object">Qoliber\CatalogGenerator\Resolver\NameResolver\Proxy</item>
+                <item name="category_name"
+                      xsi:type="object">Qoliber\CatalogGenerator\Resolver\CategoryNameResolver\Proxy</item>
             </argument>
 
             <argument name="tasks" xsi:type="array">
@@ -73,6 +75,16 @@
                       xsi:type="object">Qoliber\CatalogGenerator\Task\Product\AssignToWebsitesTask\Proxy</item>
                 <item name="website:assign_sales_channel"
                       xsi:type="object">Qoliber\CatalogGenerator\Task\Website\AssignSalesChannel\Proxy</item>
+                <item name="product:assign_to_type_categories"
+                      xsi:type="object">Qoliber\CatalogGenerator\Task\Product\AssignToTypeCategoriesTask\Proxy</item>
+                <item name="product:assign_custom_attributes"
+                      xsi:type="object">Qoliber\CatalogGenerator\Task\Product\AssignCustomAttributesTask\Proxy</item>
+                <item name="stock:link_sources"
+                      xsi:type="object">Qoliber\CatalogGenerator\Task\Stock\LinkSourcesTask\Proxy</item>
+                <item name="product:assign_custom_options"
+                      xsi:type="object">Qoliber\CatalogGenerator\Task\Product\AssignCustomOptionsTask\Proxy</item>
+                <item name="product:assign_tier_prices"
+                      xsi:type="object">Qoliber\CatalogGenerator\Task\Product\AssignTierPricesTask\Proxy</item>
             </argument>
         </arguments>
     </type>
@@ -88,6 +100,14 @@
                       xsi:type="object">Qoliber\CatalogGenerator\Data\Generators\CategoryGenerator\Proxy</item>
                 <item name="product"
                       xsi:type="object">Qoliber\CatalogGenerator\Data\Generators\ProductGenerator\Proxy</item>
+                <item name="stock"
+                      xsi:type="object">Qoliber\CatalogGenerator\Data\Generators\StockGenerator\Proxy</item>
+                <item name="catalog_rules"
+                      xsi:type="object">Qoliber\CatalogGenerator\Data\Generators\CatalogRuleGenerator\Proxy</item>
+                <item name="custom_attributes"
+                      xsi:type="object">Qoliber\CatalogGenerator\Data\Generators\CustomAttributeGenerator\Proxy</item>
+                <item name="commands"
+                      xsi:type="object">Qoliber\CatalogGenerator\Data\Generators\CommandGenerator\Proxy</item>
             </argument>
         </arguments>
     </type>

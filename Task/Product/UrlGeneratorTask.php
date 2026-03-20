@@ -26,7 +26,11 @@ class UrlGeneratorTask extends AbstractUrlGenerator implements TaskInterface
     {
         $productEntityBatches = $this->connection->getEntityBatches('entity_id', 'catalog_product_entity');
 
-        foreach ($this->getStoreIds() as $storeId) {
+        $storeIds = $this->getStoreIds();
+        $totalBatches = count($productEntityBatches) * count($storeIds);
+        $progressBar = $this->createProgressBar($totalBatches);
+
+        foreach ($storeIds as $storeId) {
             $urlRewriteArray = [];
 
             foreach ($productEntityBatches as $batch) {
@@ -45,9 +49,13 @@ class UrlGeneratorTask extends AbstractUrlGenerator implements TaskInterface
                         'product'
                     );
                 }
+
+                $progressBar?->advance();
             }
             $this->saveAndUpdateUrls($urlRewriteArray);
         }
+
+        $this->finishProgressBar($progressBar);
 
         return $this;
     }
@@ -61,7 +69,7 @@ class UrlGeneratorTask extends AbstractUrlGenerator implements TaskInterface
      */
     private function getProductIdsWithUrlKeys(int $entityIdFrom, int $entityIdTo): array
     {
-        $urlKeyAttributeId = $this->getAttributeId(4, 'url_key');
+        $urlKeyAttributeId = $this->getAttributeId($this->getEntityTypeId('catalog_product'), 'url_key');
         $sql = $this->connection->getConnection()->select()
             ->from($this->connection->getTableName('catalog_product_entity'), ['entity_id'])
             ->joinLeft(

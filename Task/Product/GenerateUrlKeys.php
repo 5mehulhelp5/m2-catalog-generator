@@ -25,14 +25,16 @@ class GenerateUrlKeys extends AbstractUrlGenerator implements TaskInterface
      */
     public function runTask(): TaskInterface
     {
-        $nameAttributeId = $this->getAttributeId(4, 'name');
-        $urlKeyAttributeId = $this->getAttributeId(4, 'url_key');
+        $nameAttributeId = $this->getAttributeId($this->getEntityTypeId('catalog_product'), 'name');
+        $urlKeyAttributeId = $this->getAttributeId($this->getEntityTypeId('catalog_product'), 'url_key');
         $fastQuery = new InsertMultipleOnDuplicate();
 
         $productEntityBatches = $this->connection->getEntityBatches(
             'entity_id',
             'catalog_product_entity'
         );
+
+        $progressBar = $this->createProgressBar(count($productEntityBatches));
 
         foreach ($productEntityBatches as $batch) {
             $dataToInsert = [];
@@ -52,7 +54,7 @@ class GenerateUrlKeys extends AbstractUrlGenerator implements TaskInterface
                 ->where('catalog_product_entity.entity_id >= ?', $entityIdFrom)
                 ->where('catalog_product_entity.entity_id <= ?', $entityTo);
 
-            foreach ($this->connection->getConnection()->fetchALl($query) as $categoryData) {
+            foreach ($this->connection->getConnection()->fetchAll($query) as $categoryData) {
                 $urlKey = $this->getSeoValue($categoryData['value']);
                 $dataToInsert[] = [
                     'attribute_id' => $urlKeyAttributeId,
@@ -71,7 +73,11 @@ class GenerateUrlKeys extends AbstractUrlGenerator implements TaskInterface
 
                 $this->connection->execute($statement, InsertMultipleOnDuplicate::flatten($dataBatch));
             }
+
+            $progressBar?->advance();
         }
+
+        $this->finishProgressBar($progressBar);
 
         return $this;
     }

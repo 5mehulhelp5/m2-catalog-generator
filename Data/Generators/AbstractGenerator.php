@@ -21,6 +21,12 @@ use Qoliber\CatalogGenerator\Api\Task\TaskInterface;
 
 abstract class AbstractGenerator implements EntityGeneratorInterface
 {
+    /** @var array<string, int> */
+    private array $entityTypeIdCache = [];
+
+    /** @var array<string, int> */
+    private array $defaultAttributeSetIdCache = [];
+
     /**
      * @param \Magento\Framework\App\ResourceConnection $resourceConnection
      * @param \Qoliber\CatalogGenerator\Api\Config\CatalogConfigReaderInterface $configReader
@@ -37,6 +43,46 @@ abstract class AbstractGenerator implements EntityGeneratorInterface
         protected array $dataResolvers = [],
         protected array $tasks = []
     ) {
+    }
+
+    /**
+     * Get Entity Type ID by entity type code
+     *
+     * @param string $entityTypeCode e.g. 'catalog_product', 'catalog_category'
+     * @return int
+     */
+    protected function getEntityTypeId(string $entityTypeCode): int
+    {
+        if (!isset($this->entityTypeIdCache[$entityTypeCode])) {
+            $connection = $this->resourceConnection->getConnection();
+            $query = $connection->select()
+                ->from($connection->getTableName('eav_entity_type'), ['entity_type_id'])
+                ->where('entity_type_code = ?', $entityTypeCode);
+
+            $this->entityTypeIdCache[$entityTypeCode] = (int) $connection->fetchOne($query);
+        }
+
+        return $this->entityTypeIdCache[$entityTypeCode];
+    }
+
+    /**
+     * Get default attribute set ID for an entity type
+     *
+     * @param string $entityTypeCode e.g. 'catalog_product', 'catalog_category'
+     * @return int
+     */
+    protected function getDefaultAttributeSetId(string $entityTypeCode): int
+    {
+        if (!isset($this->defaultAttributeSetIdCache[$entityTypeCode])) {
+            $connection = $this->resourceConnection->getConnection();
+            $query = $connection->select()
+                ->from($connection->getTableName('eav_entity_type'), ['default_attribute_set_id'])
+                ->where('entity_type_code = ?', $entityTypeCode);
+
+            $this->defaultAttributeSetIdCache[$entityTypeCode] = (int) $connection->fetchOne($query);
+        }
+
+        return $this->defaultAttributeSetIdCache[$entityTypeCode];
     }
 
     /**
@@ -110,8 +156,10 @@ abstract class AbstractGenerator implements EntityGeneratorInterface
      */
     public function getAttributeValue(mixed $attributeValue): mixed
     {
-        if (!is_float($attributeValue) && !is_int($attributeValue) && str_contains($attributeValue, 'resolver')) {
-            return $this->getDataResolver('name')?->resolveData();
+        if (!is_float($attributeValue) && !is_int($attributeValue) && str_contains($attributeValue, 'resolver:')) {
+            $resolverName = substr($attributeValue, strlen('resolver:'));
+
+            return $this->getDataResolver($resolverName)?->resolveData() ?? $attributeValue;
         }
 
         return $attributeValue;
@@ -147,6 +195,6 @@ abstract class AbstractGenerator implements EntityGeneratorInterface
             }
         }
 
-        return [];
+        return $entityArray;
     }
 }

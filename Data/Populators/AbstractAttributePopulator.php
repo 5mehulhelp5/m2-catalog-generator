@@ -58,6 +58,6 @@ abstract class AbstractAttributePopulator implements DataPopulatorInterface
             }
         }
 
-        return $this->attributeIdArray[$entityId][$attributeCode];
+        return $this->attributeIdArray[$entityId][$attributeCode] ?? [];
     }
 }

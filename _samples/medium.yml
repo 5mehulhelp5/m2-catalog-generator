@@ -1,65 +1,96 @@
-clean_before_run: true # if not defined, it will always clean up data
-prefix: 'qoliber' # used for skus, websites, stores views, MSI stock names etc
+clean_before_run: true
+prefix: 'qoliber'
 entities:
-  # category should be first
   category:
-    count: "1/2/5/10/5" # first level (root, keep 1), child for each first item, child for each second item etc, recursive function
-    attributes: #default data, for store ID = 0
-      name: "resolver:name" # check di.xml how to define value resolvers
+    count: "1/2/5/10/5"
+    attributes:
+      name: "resolver:category_name"
       include_in_menu: 1
       is_active: 1
       is_anchor: 1
       custom_use_parent_settings: 0
       custom_apply_to_products: 0
-    tasks: # check di.xml for task definition
-      - 'category:generate_url_attributes' # url_key & url_path generation, check di.xml for task configuration
+    tasks:
+      - 'category:generate_url_attributes'
+
   website:
-    count: 1
+    count: 2
     stores_per_website: 3
     tasks:
-      - 'category:generate_urls' # can only be done after stores are created
+      - 'category:generate_urls'
       - 'website:assign_sales_channel'
-      # - 'sales:sequence_check'
-  # customer_group: # // TODO, in beta version
-    # count: 4 # additional customer groups, first 4 with the installation will remain
-    # stock: // TODO, in beta version
-    # enabled: true // TODO, in beta version
-    # msi_sources_count: 2 // TODO, in beta version
-    # msi_stock_count: 2 // TODO, in beta version
+
+  customer_group:
+    count: 6
+
+  stock:
+    msi_sources_count: 3
+    msi_stock_count: 2
+    tasks:
+      - 'stock:link_sources'
+
+  custom_attributes:
+    dropdown:
+      count: 5
+      options_per_attribute: 6
+      product_assignment_percent: 60
+      searchable: true
+      filterable: true
+    multiselect:
+      count: 3
+      options_per_attribute: 5
+      product_assignment_percent: 40
+      searchable: true
+      filterable: true
+
   product:
     types:
       simple:
         count: 5000
       configurable:
-        count: 150
-        options: [3, 3]
-        # [number of attributes, number of options]
-        # this will generate (count * y^x) = 150 simple products, and 50 configurable products
+        count: 500
+        options: [2, 3]
       bundle:
-        count: 150
+        count: 200
         options:
-          # list of options for each BUNDLE product, number of child options,
-          # this will generate new products for each option
           checkbox: 3
           select: 3
           multi: 3
           radio: 3
       grouped:
-        count: 150
-        options: [8]
+        count: 200
+        options: [6]
     attributes:
       name: "resolver:name"
       price: 499
-      status: 1 # enabled
+      status: 1
       tax_class_id: 2
       visibility: 4
       weight: 1.00
+    custom_options:
+      count: 200
+      options_per_product: 3
+      values_per_option: 5
+    tier_prices:
+      levels: 5
     tasks:
       - 'product:assign_to_categories'
+      - 'product:assign_to_type_categories'
+      - 'product:assign_custom_attributes'
+      - 'product:assign_custom_options'
+      - 'product:assign_tier_prices'
       - 'product:assign_stock'
       - 'product:assign_to_websites'
       - 'product:generate_images'
       - 'product:generate_url_keys'
       - 'product:generate_urls'
+
+  catalog_rules:
+    count: 3
+    discount_type: by_percent
+    discount_range: [5, 25]
+
+  commands:
+    tasks:
       - 'command:indexer:reindex'
       - 'command:cache:flush'

@@ -17,8 +17,11 @@ use Magento\Framework\DB\Adapter\Pdo\Mysql;
 
 class Connection
 {
-    /** @var int  */
+    /** @var int */
     private const BATCH_SIZE = 1000;
+
+    /** @var array<string, int> */
+    private array $entityTypeIdCache = [];
 
     /**
      * @param \Magento\Framework\App\ResourceConnection $resource
@@ -26,6 +29,25 @@ class Connection
     public function __construct(
         protected ResourceConnection $resource,
     ) {
+    }
+
+    /**
+     * Get Entity Type ID by entity type code
+     *
+     * @param string $entityTypeCode e.g. 'catalog_product', 'catalog_category'
+     * @return int
+     */
+    public function getEntityTypeId(string $entityTypeCode): int
+    {
+        if (!isset($this->entityTypeIdCache[$entityTypeCode])) {
+            $query = $this->getConnection()->select()
+                ->from($this->getTableName('eav_entity_type'), ['entity_type_id'])
+                ->where('entity_type_code = ?', $entityTypeCode);
+
+            $this->entityTypeIdCache[$entityTypeCode] = (int) $this->getConnection()->fetchOne($query);
+        }
+
+        return $this->entityTypeIdCache[$entityTypeCode];
     }
 
     /**
@@ -62,7 +84,7 @@ class Connection
         $this->getConnection()->prepare(
             $preparedStatement
         )->execute(
-            InsertMultipleOnDuplicate::flatten($data)
+            $data
         );
     }
 

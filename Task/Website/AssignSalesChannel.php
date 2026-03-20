@@ -27,13 +27,19 @@ class AssignSalesChannel extends AbstractTask implements TaskInterface
     {
         $dataToInsert = [];
         $websiteCodes = $this->getWebsiteCodes();
+        $stockIds = $this->getStockIds();
 
-        foreach ($websiteCodes as $websiteCode) {
+        foreach ($websiteCodes as $index => $websiteCode) {
+            $stockId = $stockIds[$index % count($stockIds)];
             $dataToInsert[] = [
                 'type' => 'website',
                 'code' => $websiteCode,
-                'stock_id' => 1 //TODO - implement multi warehouse inventory generation
+                'stock_id' => (int) $stockId,
             ];
+        }
+
+        if (empty($dataToInsert)) {
+            return $this;
         }
 
         $insert = new InsertMultipleOnDuplicate();
@@ -60,5 +66,18 @@ class AssignSalesChannel extends AbstractTask implements TaskInterface
             ->where('website_id > 0');
 
         return $this->connection->getConnection()->fetchCol($websiteCodesSql);
+    }
+
+    /**
+     * Get all stock IDs
+     *
+     * @return string[]
+     */
+    private function getStockIds(): array
+    {
+        $query = $this->connection->getConnection()->select()
+            ->from($this->connection->getTableName('inventory_stock'), ['stock_id']);
+
+        return $this->connection->getConnection()->fetchCol($query);
     }
 }

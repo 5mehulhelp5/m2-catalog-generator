@@ -28,11 +28,13 @@ class UrlAttributeGeneratorTask extends AbstractUrlGenerator implements TaskInte
     public function runTask(): TaskInterface
     {
         $categoryUrlPaths = [];
-        $nameAttributeId = $this->getAttributeId(3, 'name');
-        $urlKeyAttributeId = $this->getAttributeId(3, 'url_key');
-        $urlPathAttributed = $this->getAttributeId(3, 'url_path');
+        $nameAttributeId = $this->getAttributeId($this->getEntityTypeId('catalog_category'), 'name');
+        $urlKeyAttributeId = $this->getAttributeId($this->getEntityTypeId('catalog_category'), 'url_key');
+        $urlPathAttributed = $this->getAttributeId($this->getEntityTypeId('catalog_category'), 'url_path');
         $fastQuery = new InsertMultipleOnDuplicate();
         $categoryEntityBatches = $this->connection->getEntityBatches('entity_id', 'catalog_category_entity');
+
+        $progressBar = $this->createProgressBar(count($categoryEntityBatches));
 
         foreach ($categoryEntityBatches as $batch) {
             $dataToInsert = [];
@@ -54,7 +56,7 @@ class UrlAttributeGeneratorTask extends AbstractUrlGenerator implements TaskInte
                 ->where('catalog_category_entity.entity_id <= ?', $entityTo)
                 ->order('level asc');
 
-            foreach ($this->connection->getConnection()->fetchALl($query) as $categoryData) {
+            foreach ($this->connection->getConnection()->fetchAll($query) as $categoryData) {
                 $urlKey = $this->getSeoValue($categoryData['value']);
                 $categoryUrlPaths[$categoryData['entity_id']] = $urlKey;
                 $urlPath = $this->buildUrlPath($categoryData['path'], $categoryUrlPaths);
@@ -83,7 +85,11 @@ class UrlAttributeGeneratorTask extends AbstractUrlGenerator implements TaskInte
 
                 $this->connection->execute($statement, InsertMultipleOnDuplicate::flatten($dataBatch));
             }
+
+            $progressBar?->advance();
         }
+
+        $this->finishProgressBar($progressBar);
 
         return $this;
     }
